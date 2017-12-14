@@ -1,0 +1,18 @@
+# This config will create a container called users-service,
+# from the Dockerfile.
+# Directories are relative to the docker-compose.yml file.
+
+version: '2.1'
+
+services:
+  user-service:
+    container_name: users-service
+    build: .
+    volumes:
+      - '.:/usr/src/app'
+    ports:
+      # expose ports
+      # HOST - CONTAINER
+      - 5001:5000
+    environment:
+      - APP_SETTINGS=project.config.DevelopmentConfig
