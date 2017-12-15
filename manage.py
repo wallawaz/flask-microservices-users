@@ -19,7 +19,6 @@ def test():
         return 0
     return 1
 
-
 @manager.command
 def recreate_db():
     """Recreates a database"""

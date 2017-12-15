@@ -152,3 +152,32 @@ class TestDevelopmentConfig(BaseTestCase):
                 self.assertTrue(response_user["username"] == user[0])
                 self.assertTrue(response_user["email"] == user[1])
             self.assertIn("success", data["status"])
+
+    def test_index_no_users(self):
+        """Ensure the route behaves correctly when no users have been added to db"""
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"<h1>All Users</h1>", response.data)
+        self.assertIn(b"<p>No users!</p>", response.data)
+    
+    def test_index_with_users(self):
+        self.add_user("bwallad", "bwallad@example.com")
+        self.add_user("carebear", "sharingIsCaring@gmail.com")
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"<h1>All Users</h1>", response.data)
+        self.assertNotIn(b"<strong>bwallad<strong>", response.data)
+        self.assertNotIn(b"<strong>carebear<strong>", response.data)
+    
+    def test_index_add_user(self):
+        """Ensure a new user can be added to the db"""
+        with self.client:
+            response = self.client.post(
+                "/",
+                data=dict(username="bwallad", email="bwallad@example.com"),
+                follow_redirects=True
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'<h1>All Users</h1>', response.data)
+            self.assertNotIn(b'<p>No users!</p>', response.data)
+            self.assertIn(b'<strong>bwallad</strong>', response.data)
