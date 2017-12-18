@@ -3,6 +3,7 @@
 import os
 import datetime
 from flask import Flask, jsonify
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -11,6 +12,9 @@ db = SQLAlchemy()
 def create_app():
     # instantiate
     app = Flask(__name__)
+
+    # enable CORS
+    CORS(app)
     
     app_settings = os.getenv("APP_SETTINGS")
     app.config.from_object(app_settings)
