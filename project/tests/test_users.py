@@ -1,3 +1,4 @@
+import datetime
 import unittest
 
 import json
@@ -10,9 +11,9 @@ from project.tests.base import BaseTestCase
 class TestDevelopmentConfig(BaseTestCase):
     """Tests for the users service"""
 
-    def add_user(self, username, email):
+    def add_user(self, username, email, created_at=datetime.datetime.utcnow()):
         """helper function to add a user to db"""
-        user = User(username=username, email=email)
+        user = User(username=username, email=email, created_at=created_at)
         db.session.add(user)
         db.session.commit()
         return user
@@ -131,53 +132,26 @@ class TestDevelopmentConfig(BaseTestCase):
     def test_all_users(self):
         """Ensure get all users behaves correctly"""
         user_info = [
-            ("bwallad", "bwallad@example.com"),
-            ("martin", "martinRules@example.com"),
+            ("bwallad", "bwallad@example.com", -30),
+            ("martin", "martinRules@example.com", 0),
         ]
-        for username, email in user_info:
-            self.add_user(username, email)
-
+        for username, email, delta in user_info:
+            created_at = datetime.datetime.utcnow() + datetime.timedelta(delta)
+            self.add_user(username, email, created_at)
+            
         with self.client:
             response = self.client.get("/users")
             data = json.loads(response.data.decode())
             self.assertTrue(response.status_code, 200)
 
             response_users = data["data"]["users"]
-            response_users.sort(key=lambda x: x["created_at"])
+            self.assertIn("success", data["status"])
             self.assertEqual(len(response_users), 2)
 
-            for i, user in enumerate(user_info):
-                response_user = response_users[i]
-                self.assertTrue("created_at" in response_user)
-                self.assertTrue(response_user["username"] == user[0])
-                self.assertTrue(response_user["email"] == user[1])
-            self.assertIn("success", data["status"])
+            self.assertTrue(response_users[0]["username"] == user_info[1][0])
+            self.assertTrue(response_users[0]["email"] == user_info[1][1])
+            self.assertIn("created_at", response_users[0])
 
-    def test_index_no_users(self):
-        """Ensure the route behaves correctly when no users have been added to db"""
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"<h1>All Users</h1>", response.data)
-        self.assertIn(b"<p>No users!</p>", response.data)
-    
-    def test_index_with_users(self):
-        self.add_user("bwallad", "bwallad@example.com")
-        self.add_user("carebear", "sharingIsCaring@gmail.com")
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"<h1>All Users</h1>", response.data)
-        self.assertNotIn(b"<strong>bwallad<strong>", response.data)
-        self.assertNotIn(b"<strong>carebear<strong>", response.data)
-    
-    def test_index_add_user(self):
-        """Ensure a new user can be added to the db"""
-        with self.client:
-            response = self.client.post(
-                "/",
-                data=dict(username="bwallad", email="bwallad@example.com"),
-                follow_redirects=True
-            )
-            self.assertEqual(response.status_code, 200)
-            self.assertIn(b'<h1>All Users</h1>', response.data)
-            self.assertNotIn(b'<p>No users!</p>', response.data)
-            self.assertIn(b'<strong>bwallad</strong>', response.data)
+            self.assertTrue(response_users[1]["username"] == user_info[0][0])
+            self.assertTrue(response_users[1]["email"] == user_info[0][1])
+            self.assertIn("created_at", response_users[0])

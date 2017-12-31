@@ -15,6 +15,5 @@ before_script:
   - psql -c 'create database users_test;' -U postgres
   - python manage.py recreate_db
 
-
 script:
   - python manage.py test

@@ -20,6 +20,7 @@ def create_app():
     app.config.from_object(app_settings)
 
     db.init_app(app)
+    
     from project.api.views import users_blueprint
     app.register_blueprint(users_blueprint)
 

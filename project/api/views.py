@@ -77,7 +77,7 @@ def get_single_user(user_id):
 @users_blueprint.route("/users", methods=["GET"])
 def get_all_users():
     """Get all users"""
-    users = User.query.order_by(User.created_at).all()
+    users = User.query.order_by(User.created_at.desc()).all()
     users_list = []
     for user in users:
         users_list.append({
@@ -94,15 +94,3 @@ def get_all_users():
         },
     }
     return jsonify(response_object), 200
-
-@users_blueprint.route("/", methods=["GET", "POST"])
-def index():
-    """Get all users"""
-    if request.method == "POST":
-        username = request.form["username"]
-        email = request.form["email"]
-        db.session.add(User(username=username, email=email))
-        db.session.commit()
-
-    users = User.query.all()
-    return render_template("index.html", users=users)
