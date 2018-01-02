@@ -1,6 +1,7 @@
 import coverage
 import unittest
 
+from flask_migrate import MigrateCommand
 from flask_script import Manager
 from project import create_app, db
 from project.api.models import User
@@ -17,6 +18,7 @@ COV.start()
 
 app = create_app()
 manager = Manager(app)
+manager.add_command("db", MigrateCommand)
 
 @manager.command
 def test():
