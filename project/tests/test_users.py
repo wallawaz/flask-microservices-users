@@ -6,17 +6,11 @@ import json
 from project import db
 from project.api.models import User
 from project.tests.base import BaseTestCase
+from project.tests.utils import add_user
 
 
 class TestDevelopmentConfig(BaseTestCase):
     """Tests for the users service"""
-
-    def add_user(self, username, email, created_at=datetime.datetime.utcnow()):
-        """helper function to add a user to db"""
-        user = User(username=username, email=email, created_at=created_at)
-        db.session.add(user)
-        db.session.commit()
-        return user
 
     def test_users(self):
         """Ensure /ping works correctly"""
@@ -100,7 +94,7 @@ class TestDevelopmentConfig(BaseTestCase):
     def test_single_user(self):
         """Ensure single user behaves correctly."""
 
-        user = self.add_user("bwallad", "bwallad@example.com")
+        user = add_user("bwallad", "bwallad@example.com")
         with self.client:
             response = self.client.get(f"/users/{user.id}")
 
@@ -137,7 +131,7 @@ class TestDevelopmentConfig(BaseTestCase):
         ]
         for username, email, delta in user_info:
             created_at = datetime.datetime.utcnow() + datetime.timedelta(delta)
-            self.add_user(username, email, created_at)
+            add_user(username, email, created_at)
             
         with self.client:
             response = self.client.get("/users")
