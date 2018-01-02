@@ -6,11 +6,15 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_bcrypt import Bcrypt
 
 # instantiate db
 db = SQLAlchemy()
 # instantiate flask migrate
 migrate = Migrate()
+# instantiate bcrypt
+bcrypt = Bcrypt()
+
 
 def create_app():
     # instantiate
@@ -23,6 +27,7 @@ def create_app():
     app.config.from_object(app_settings)
 
     db.init_app(app)
+    bcrypt.init_app(app)
     migrate.init_app(app, db)
 
     

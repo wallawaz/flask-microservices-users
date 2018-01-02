@@ -28,7 +28,8 @@ class TestDevelopmentConfig(BaseTestCase):
                 "/users",
                 data=json.dumps(dict(
                     username="Ben",
-                    email="bwallad@example.com"
+                    email="bwallad@example.com",
+                    password="testpassword",
                 )),
                 content_type="application/json",
             )
@@ -67,11 +68,10 @@ class TestDevelopmentConfig(BaseTestCase):
 
     def test_add_user_duplicate_user(self):
         """Ensure Error is thrown if email already exists."""
-        # self.client == flask.testing.FlaskClient
-
         json_user = json.dumps(dict(
             email="joe@example.com",
             username="joeexample",
+            password="testpassword",
         ))
         with self.client: 
             response = self.client.post(
@@ -94,7 +94,7 @@ class TestDevelopmentConfig(BaseTestCase):
     def test_single_user(self):
         """Ensure single user behaves correctly."""
 
-        user = add_user("bwallad", "bwallad@example.com")
+        user = add_user("bwallad", "bwallad@example.com", "testpassword")
         with self.client:
             response = self.client.get(f"/users/{user.id}")
 
@@ -126,12 +126,12 @@ class TestDevelopmentConfig(BaseTestCase):
     def test_all_users(self):
         """Ensure get all users behaves correctly"""
         user_info = [
-            ("bwallad", "bwallad@example.com", -30),
-            ("martin", "martinRules@example.com", 0),
+            ("bwallad", "bwallad@example.com", "pass1", -30),
+            ("martin", "martinRules@example.com", "pass2", 0),
         ]
-        for username, email, delta in user_info:
+        for username, email, password, delta in user_info:
             created_at = datetime.datetime.utcnow() + datetime.timedelta(delta)
-            add_user(username, email, created_at)
+            add_user(username, email, password, created_at)
             
         with self.client:
             response = self.client.get("/users")
@@ -149,3 +149,19 @@ class TestDevelopmentConfig(BaseTestCase):
             self.assertTrue(response_users[1]["username"] == user_info[0][0])
             self.assertTrue(response_users[1]["email"] == user_info[0][1])
             self.assertIn("created_at", response_users[0])
+    
+    def test_add_user_invalid_json_keys_no_password(self):
+        """Ensure an error is thrown if JSON does not have a password key."""
+        with self.client:
+            response = self.client.post(
+                "/users",
+                data=json.dumps(dict(
+                    username="ihavenopassword",
+                    email="nopass@test.com",
+                )),
+                content_type="application/json"
+            )
+            data = json.loads(response.data.decode())
+            self.assertEqual(response.status_code, 400)
+            self.assertIn("Invalid payload.", data["message"])
+            self.assertIn("fail", data["status"])
