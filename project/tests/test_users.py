@@ -165,3 +165,8 @@ class TestDevelopmentConfig(BaseTestCase):
             self.assertEqual(response.status_code, 400)
             self.assertIn("Invalid payload.", data["message"])
             self.assertIn("fail", data["status"])
+    
+    def test_encode_with_auth_token(self):
+        user = add_user("justatest", "test@test.com", "test")
+        auth_token = user.encode_auth_token(user.id)
+        self.assertTrue(isinstance(auth_token, bytes))
