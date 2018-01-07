@@ -57,8 +57,11 @@ class TestProductionConfig(TestCase):
         app.config.from_object("project.config.ProductionConfig")
         return app
 
-    def test_app_is_testing(self):
-        self.assertTrue(app.config["SECRET_KEY"] == "my_precious")
+    def test_app_is_production(self):
+        self.assertTrue(
+            app.config["SECRET_KEY"] ==
+            os.environ.get("SECRET_KEY")
+        )
         self.assertFalse(app.config["DEBUG"])
         self.assertFalse(app.config["TESTING"])
         self.assertFalse(app.config['PRESERVE_CONTEXT_ON_EXCEPTION'])
