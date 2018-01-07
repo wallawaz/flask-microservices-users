@@ -1,5 +1,4 @@
 import json
-import time
 
 from flask import current_app
 
@@ -143,6 +142,9 @@ class TestAuthBluePrint(BaseTestCase):
     def test_invalid_logout_expired_token(self):
         with self.client:
             add_user("test", "test@test.com", "test")
+
+            # all tokens will be expired
+            current_app.config["TOKEN_EXPIRATION_SECONDS"] = -1
             login_resp = self.client.post(
                 "/auth/login",
                 data=json.dumps({
@@ -151,9 +153,6 @@ class TestAuthBluePrint(BaseTestCase):
                 }),
                 content_type="application/json"
             )
-            # set time > allowable
-            sleep_seconds = current_app.config.get("TOKEN_EXPIRATION_SECONDS") + 1
-            time.sleep(sleep_seconds)
             token = json.loads(login_resp.data.decode())["auth_token"]
             logout_resp = self.client.get(
                 "/auth/logout",
